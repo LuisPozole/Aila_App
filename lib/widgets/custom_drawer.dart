@@ -3,7 +3,8 @@ import 'package:flutter/material.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import '../utils/constants.dart';
 import '../services/mongodb_service.dart';
-import 'package:aila_/ui/cuentas_page.dart'; // Importa la nueva página
+import 'package:aila_/ui/cuentas_page.dart';
+import 'package:aila_/ui/contactos_page.dart'; // Se importa correctamente la pantalla de Contactos
 
 class CustomDrawer extends StatelessWidget {
   final _storage = FlutterSecureStorage();
@@ -38,7 +39,7 @@ class CustomDrawer extends StatelessWidget {
             future: _getUserInfo(),
             builder: (context, snapshot) {
               if (snapshot.connectionState == ConnectionState.waiting) {
-                return DrawerHeader(
+                return const DrawerHeader(
                   child: Center(child: CircularProgressIndicator()),
                 );
               }
@@ -46,15 +47,15 @@ class CustomDrawer extends StatelessWidget {
               final userInfo = snapshot.data;
               final imageProvider = (userInfo?['image'] != null)
                   ? MemoryImage(base64Decode(userInfo!['image']))
-                  : AssetImage('assets/placeholder.png') as ImageProvider;
+                  : const AssetImage('assets/placeholder.png') as ImageProvider;
 
               return Container(
                 color: AppColors.primary.withOpacity(0.1),
-                padding: EdgeInsets.symmetric(horizontal: 16, vertical: 20),
+                padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 20),
                 child: Row(
                   children: [
                     CircleAvatar(radius: 30, backgroundImage: imageProvider),
-                    SizedBox(width: 12),
+                    const SizedBox(width: 12),
                     Expanded(
                       child: Text(
                         userInfo?['name'] ?? 'Usuario',
@@ -70,15 +71,15 @@ class CustomDrawer extends StatelessWidget {
               );
             },
           ),
-          Divider(),
+          const Divider(),
           ListTile(
             leading: Icon(Icons.person, color: AppColors.primary),
-            title: Text("Perfil"),
+            title: const Text("Perfil"),
             onTap: () => Navigator.pushNamed(context, "/perfil"),
           ),
           ListTile(
             leading: Icon(Icons.lock, color: AppColors.primary),
-            title: Text("Cuentas"),
+            title: const Text("Cuentas"),
             onTap: () => Navigator.push(
               context,
               MaterialPageRoute(builder: (context) => CuentaPage()),
@@ -86,13 +87,16 @@ class CustomDrawer extends StatelessWidget {
           ),
           ListTile(
             leading: Icon(Icons.contacts, color: AppColors.primary),
-            title: Text("Contactos"),
-            onTap: () => Navigator.pushNamed(context, "/contactos"),
+            title: const Text("Contactos"),
+            onTap: () => Navigator.push(
+              context,
+              MaterialPageRoute(builder: (context) => ContactosPage()),
+            ),
           ),
           Divider(color: AppColors.primary),
           ListTile(
-            leading: Icon(Icons.exit_to_app, color: Colors.red),
-            title: Text("Cerrar sesión", style: TextStyle(color: Colors.red)),
+            leading: const Icon(Icons.exit_to_app, color: Colors.red),
+            title: const Text("Cerrar sesión", style: TextStyle(color: Colors.red)),
             onTap: () => _logout(context),
           ),
         ],
