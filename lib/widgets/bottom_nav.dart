@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
-import 'package:aila_/ui/reminders_page.dart'; // Importa la pantalla de recordatorios
+import 'package:aila_/ui/reminders_page.dart';
+import 'package:aila_/ui/chatbot_page.dart'; // Importa la pantalla del chatbot
 
 class BottomNav extends StatelessWidget {
   @override
@@ -11,10 +12,9 @@ class BottomNav extends StatelessWidget {
       currentIndex: 1,
       onTap: (index) {
         if (index == 0) {
-          Navigator.push(
-            context,
-            MaterialPageRoute(builder: (context) => RemindersPage()),
-          );
+          Navigator.push(context, MaterialPageRoute(builder: (context) => RemindersPage()));
+        } else if (index == 1) {
+          Navigator.push(context, MaterialPageRoute(builder: (context) => ChatbotPage())); // Agrega la navegación
         }
       },
       items: [
