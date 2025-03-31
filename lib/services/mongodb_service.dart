@@ -14,6 +14,17 @@ class MongoDBService {
     return _db!.collection(collectionName);
   }
 
+  static Future<List<Map<String, dynamic>>> getReminders(String userId) async {
+    var collection = getCollection('Recordatorios');
+    var result = await collection.find({'idUsuario': userId}).toList();
+    return result;
+  }
+
+  static Future<void> addReminder(Map<String, dynamic> reminder) async {
+    var collection = getCollection('Recordatorios');
+    await collection.insert(reminder);
+  }
+
   static Future<void> close() async {
     await _db?.close();
   }

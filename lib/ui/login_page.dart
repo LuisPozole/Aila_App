@@ -28,7 +28,11 @@ class _LoginPageState extends State<LoginPage> {
           .find({'username': _userController.text}).toList();
 
       if (users.isNotEmpty && users[0]['password'] == encryptedPass) {
+        // Guardar el nombre de usuario y el userId en flutter_secure_storage
         await _storage.write(key: 'loggedUser', value: _userController.text);
+        await _storage.write(key: 'userId', value: users[0]['_id'].toString());  // Guardando el userId
+
+        // Navegar a la página principal
         Navigator.pushReplacement(
           context,
           MaterialPageRoute(builder: (context) => HomePage()),

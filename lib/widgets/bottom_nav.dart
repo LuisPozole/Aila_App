@@ -1,18 +1,26 @@
 import 'package:flutter/material.dart';
-import '../utils/constants.dart';
+import 'package:aila_/ui/reminders_page.dart'; // Importa la pantalla de recordatorios
 
 class BottomNav extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return BottomNavigationBar(
-      backgroundColor: AppColors.primary,
+      backgroundColor: Colors.blue,
       selectedItemColor: Colors.white,
       unselectedItemColor: Colors.white70,
-      currentIndex: 1, // Resaltar "Hablar" como opción central
+      currentIndex: 1,
+      onTap: (index) {
+        if (index == 0) {
+          Navigator.push(
+            context,
+            MaterialPageRoute(builder: (context) => RemindersPage()),
+          );
+        }
+      },
       items: [
         BottomNavigationBarItem(icon: Icon(Icons.notifications), label: "Recordatorios"),
         BottomNavigationBarItem(icon: Icon(Icons.mic), label: "Hablar"),
-        BottomNavigationBarItem(icon: Icon(Icons.laptop), label: "dispositivos"),
+        BottomNavigationBarItem(icon: Icon(Icons.laptop), label: "Dispositivos"),
       ],
     );
   }
