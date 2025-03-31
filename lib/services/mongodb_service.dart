@@ -24,6 +24,17 @@ class MongoDBService {
     var collection = getCollection('Recordatorios');
     await collection.insert(reminder);
   }
+  static Future<void> updateReminder(Map<String, dynamic> reminder) async {
+    var collection = getCollection('Recordatorios');
+    await collection.update(
+      where.eq('_id', reminder['_id']),
+      modify.set('titulo', reminder['titulo']).set('descripcion', reminder['descripcion']),
+    );
+  }
+  static Future<void> deleteReminder(ObjectId id) async {
+    var collection = getCollection('Recordatorios');
+    await collection.remove(where.eq('_id', id));
+  }
 
   static Future<void> close() async {
     await _db?.close();

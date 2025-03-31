@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:aila_/services/mongodb_service.dart';
-import '../utils/constants.dart'; // Asegúrate de importar tus constantes
+import '../utils/constants.dart'; // Asegúrate de que las constantes están correctamente definidas.
 
 class AddReminderPage extends StatefulWidget {
   @override
@@ -41,11 +41,12 @@ class _AddReminderPageState extends State<AddReminderPage> {
       lastDate: DateTime(2101),
     );
 
-    if (picked != null && picked != selectedDate)
+    if (picked != null && picked != selectedDate) {
       setState(() {
         selectedDate = picked;
-        _dateController.text = "${picked.toLocal()}".split(' ')[0];
+        _dateController.text = "${picked.toLocal()}".split(' ')[0]; // Formato corto YYYY-MM-DD
       });
+    }
   }
 
   Future<void> _selectTime(BuildContext context) async {
@@ -54,11 +55,12 @@ class _AddReminderPageState extends State<AddReminderPage> {
       initialTime: selectedTime ?? TimeOfDay.now(),
     );
 
-    if (picked != null && picked != selectedTime)
+    if (picked != null && picked != selectedTime) {
       setState(() {
         selectedTime = picked;
-        _timeController.text = "${picked.format(context)}";
+        _timeController.text = picked.format(context);
       });
+    }
   }
 
   Future<void> _saveReminder() async {
@@ -81,7 +83,14 @@ class _AddReminderPageState extends State<AddReminderPage> {
 
     await MongoDBService.addReminder(reminder);
 
-    Navigator.pop(context); // Regresar a la pantalla de recordatorios
+ScaffoldMessenger.of(context).showSnackBar(
+  SnackBar(
+    content: Text('Recordatorio guardado con éxito'),
+    backgroundColor: AppColors.success, // Asegúrate que AppColors.success está definido correctamente
+  ),
+);
+
+    Navigator.pop(context, true); // Retorna 'true' para actualizar la lista
   }
 
   @override
@@ -138,7 +147,7 @@ class _AddReminderPageState extends State<AddReminderPage> {
             borderSide: BorderSide(color: AppColors.primary),
           ),
         ),
-        validator: (value) => value!.isEmpty ? "Por favor, ingresa un $label" : null,
+        validator: (value) => value?.isEmpty ?? true ? "Por favor, ingresa un $label" : null,
       ),
     );
   }
@@ -163,7 +172,7 @@ class _AddReminderPageState extends State<AddReminderPage> {
         ),
         readOnly: true,
         onTap: () => _selectDate(context),
-        validator: (value) => value!.isEmpty ? "Seleccione una fecha" : null,
+        validator: (value) => value?.isEmpty ?? true ? "Seleccione una fecha" : null,
       ),
     );
   }
@@ -188,7 +197,7 @@ class _AddReminderPageState extends State<AddReminderPage> {
         ),
         readOnly: true,
         onTap: () => _selectTime(context),
-        validator: (value) => value!.isEmpty ? "Seleccione una hora" : null,
+        validator: (value) => value?.isEmpty ?? true ? "Seleccione una hora" : null,
       ),
     );
   }

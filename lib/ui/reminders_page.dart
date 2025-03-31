@@ -2,7 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:aila_/services/mongodb_service.dart';
 import 'add_reminder_page.dart';
-import 'package:aila_/utils/constants.dart'; // Asegúrate de importar tus constantes
+import 'package:aila_/ui/editReminderPage.dart'; // Importar la nueva página
+import 'package:aila_/utils/constants.dart';
 
 class RemindersPage extends StatefulWidget {
   @override
@@ -65,10 +66,7 @@ class _RemindersPageState extends State<RemindersPage> {
                             ),
                             child: ListTile(
                               contentPadding: EdgeInsets.all(16),
-                              title: Text(
-                                reminder['titulo'],
-                                style: AppTextStyles.bigTitle,
-                              ),
+                              title: Text(reminder['titulo'], style: AppTextStyles.bigTitle),
                               subtitle: Column(
                                 crossAxisAlignment: CrossAxisAlignment.start,
                                 children: [
@@ -78,6 +76,19 @@ class _RemindersPageState extends State<RemindersPage> {
                                   Text('Hora: ${reminder['hora']}', style: AppTextStyles.bodyText),
                                 ],
                               ),
+                              trailing: IconButton(
+                                icon: Icon(Icons.edit, color: AppColors.primary),
+                                onPressed: () {
+                                  Navigator.push(
+                                    context,
+                                    MaterialPageRoute(
+                                      builder: (context) => EditReminderPage(reminder: reminder),
+                                    ),
+                                  ).then((result) {
+                                    if (result == true) _fetchReminders();
+                                  }); // Refrescar solo si hubo cambios
+                                },
+                              ),
                             ),
                           );
                         },
@@ -86,10 +97,14 @@ class _RemindersPageState extends State<RemindersPage> {
                     Padding(
                       padding: const EdgeInsets.all(16.0),
                       child: ElevatedButton(
-                        onPressed: () => Navigator.push(
-                          context,
-                          MaterialPageRoute(builder: (context) => AddReminderPage()),
-                        ),
+                        onPressed: () {
+                          Navigator.push(
+                            context,
+                            MaterialPageRoute(builder: (context) => AddReminderPage()),
+                          ).then((result) {
+                            if (result == true) _fetchReminders(); // Refrescar si se agregó un nuevo recordatorio
+                          });
+                        },
                         style: ElevatedButton.styleFrom(
                           backgroundColor: AppColors.primary,
                           padding: EdgeInsets.symmetric(horizontal: 80, vertical: 16),
@@ -115,10 +130,14 @@ class _RemindersPageState extends State<RemindersPage> {
           Image.asset('assets/mascota3.png', height: 150),
           SizedBox(height: 10),
           ElevatedButton(
-            onPressed: () => Navigator.push(
-              context,
-              MaterialPageRoute(builder: (context) => AddReminderPage()),
-            ),
+            onPressed: () {
+              Navigator.push(
+                context,
+                MaterialPageRoute(builder: (context) => AddReminderPage()),
+              ).then((result) {
+                if (result == true) _fetchReminders(); // Refrescar si se agregó un recordatorio
+              });
+            },
             style: ElevatedButton.styleFrom(
               backgroundColor: AppColors.primary,
               padding: EdgeInsets.symmetric(horizontal: 80, vertical: 16),
