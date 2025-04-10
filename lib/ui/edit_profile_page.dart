@@ -6,7 +6,7 @@ import '../utils/constants.dart';
 class EditProfilePage extends StatefulWidget {
   final User user;
 
-  EditProfilePage({required this.user});
+  const EditProfilePage({Key? key, required this.user}) : super(key: key);
 
   @override
   _EditProfilePageState createState() => _EditProfilePageState();
@@ -24,8 +24,16 @@ class _EditProfilePageState extends State<EditProfilePage> {
     _emailController = TextEditingController(text: widget.user.email);
   }
 
+  @override
+  void dispose() {
+    _nameController.dispose();
+    _emailController.dispose();
+    super.dispose();
+  }
+
   Future<void> _updateUserInDatabase(User updatedUser) async {
-    await MongoDBService.getCollection('Usuarios').updateOne(
+    final collection = await MongoDBService.getCollection('Usuarios');
+    await collection.updateOne(
       {'username': updatedUser.username},
       {
         '\$set': {
@@ -41,69 +49,34 @@ class _EditProfilePageState extends State<EditProfilePage> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Text('Editar Perfil'),
-        backgroundColor: AppColors.primary,
+        title: Text('Editar Perfil',
+            style: TextStyle(
+                color: Colors.white,
+                fontWeight: FontWeight.w600,
+                fontSize: 20)),
         centerTitle: true,
-        elevation: 0,
+        flexibleSpace: Container(
+          decoration: BoxDecoration(
+            gradient: LinearGradient(
+              colors: [AppColors.primary, AppColors.primary.withOpacity(0.8)],
+              begin: Alignment.topLeft,
+              end: Alignment.bottomRight,
+            ),
+          ),
+        ),
+        elevation: 4,
+        iconTheme: IconThemeData(color: Colors.white),
       ),
       body: SingleChildScrollView(
-        padding: EdgeInsets.all(20),
+        padding: EdgeInsets.all(24),
         child: Form(
           key: _formKey,
           child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Center(
-                child: CircleAvatar(
-                  radius: 50,
-                  backgroundColor: AppColors.primary.withOpacity(0.2),
-                  child: Icon(Icons.person, size: 50, color: AppColors.primary),
-                ),
-              ),
-              SizedBox(height: 20),
-              Text("Nombre", style: _labelStyle()),
-              TextFormField(
-                controller: _nameController,
-                decoration: _inputDecoration("Ingresa tu nombre"),
-                validator: (value) => value!.isEmpty ? "El nombre es requerido" : null,
-              ),
-              SizedBox(height: 16),
-              Text("Correo Electrónico", style: _labelStyle()),
-              TextFormField(
-                controller: _emailController,
-                decoration: _inputDecoration("Ingresa tu correo"),
-                keyboardType: TextInputType.emailAddress,
-                validator: (value) => _validateEmail(value),
-              ),
-              SizedBox(height: 30),
-              Center(
-                child: ElevatedButton(
-                  onPressed: () async {
-                    if (_formKey.currentState!.validate()) {
-                      User updatedUser = User(
-                        id: widget.user.id,
-                        name: _nameController.text,
-                        username: widget.user.username,
-                        email: _emailController.text,
-                        password: '',
-                        tipoUsuario: widget.user.tipoUsuario,
-                        ubicacion: widget.user.ubicacion,
-                      );
-
-                      await _updateUserInDatabase(updatedUser);
-                      Navigator.pop(context, updatedUser);
-                    }
-                  },
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: AppColors.primary,
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(20),
-                    ),
-                    padding: EdgeInsets.symmetric(horizontal: 50, vertical: 15),
-                  ),
-                  child: Text('Guardar Cambios', style: TextStyle(fontSize: 16)),
-                ),
-              ),
+              SizedBox(height: 32),
+              _buildFormFields(),
+              SizedBox(height: 40),
+              _buildSaveButton(),
             ],
           ),
         ),
@@ -111,24 +84,101 @@ class _EditProfilePageState extends State<EditProfilePage> {
     );
   }
 
-  TextStyle _labelStyle() {
-    return TextStyle(fontSize: 16, fontWeight: FontWeight.w600, color: AppColors.textPrimary);
+  Widget _buildFormFields() {
+    return Column(
+      children: [
+        _buildTextField(
+          controller: _nameController,
+          label: "Nombre completo",
+          icon: Icons.person_outline,
+          validator: (value) =>
+              value == null || value.isEmpty ? "El nombre es requerido" : null,
+        ),
+        SizedBox(height: 24),
+        _buildTextField(
+          controller: _emailController,
+          label: "Correo electrónico",
+          icon: Icons.email_outlined,
+          keyboardType: TextInputType.emailAddress,
+          validator: _validateEmail,
+        ),
+      ],
+    );
   }
 
-  InputDecoration _inputDecoration(String hint) {
-    return InputDecoration(
-      hintText: hint,
-      contentPadding: EdgeInsets.symmetric(horizontal: 20, vertical: 14),
-      border: OutlineInputBorder(
-        borderRadius: BorderRadius.circular(10),
+  Widget _buildTextField({
+    required TextEditingController controller,
+    required String label,
+    required IconData icon,
+    TextInputType? keyboardType,
+    String? Function(String?)? validator,
+  }) {
+    return TextFormField(
+      controller: controller,
+      keyboardType: keyboardType,
+      validator: validator,
+      style: TextStyle(color: AppColors.textPrimary),
+      decoration: InputDecoration(
+        labelText: label,
+        labelStyle: TextStyle(color: Colors.grey.shade600),
+        prefixIcon: Icon(icon, color: AppColors.primary),
+        filled: true,
+        fillColor: Colors.grey.shade50,
+        border: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(15),
+          borderSide: BorderSide.none,
+        ),
+        focusedBorder: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(15),
+          borderSide: BorderSide(color: AppColors.primary, width: 1.5),
+        ),
+        contentPadding: EdgeInsets.symmetric(vertical: 16, horizontal: 20),
+        floatingLabelBehavior: FloatingLabelBehavior.auto,
       ),
-      enabledBorder: OutlineInputBorder(
-        borderSide: BorderSide(color: Colors.grey.shade300),
-        borderRadius: BorderRadius.circular(10),
-      ),
-      focusedBorder: OutlineInputBorder(
-        borderSide: BorderSide(color: AppColors.primary, width: 2),
-        borderRadius: BorderRadius.circular(10),
+    );
+  }
+
+  Widget _buildSaveButton() {
+    return SizedBox(
+      width: double.infinity,
+      child: ElevatedButton.icon(
+        onPressed: () async {
+          if (_formKey.currentState!.validate()) {
+            User updatedUser = User(
+              id: widget.user.id,
+              name: _nameController.text,
+              username: widget.user.username,
+              email: _emailController.text,
+              password: widget.user.password,
+              tipoUsuario: widget.user.tipoUsuario,
+              ubicacion: widget.user.ubicacion,
+            );
+
+            await _updateUserInDatabase(updatedUser);
+
+            ScaffoldMessenger.of(context).showSnackBar(
+              SnackBar(
+                content: Text('Cambios guardados exitosamente'),
+                backgroundColor: Colors.green,
+              ),
+            );
+
+            Navigator.pop(context, updatedUser);
+          }
+        },
+        icon: Icon(Icons.save_rounded, size: 22),
+        label: Text('GUARDAR CAMBIOS',
+            style: TextStyle(fontWeight: FontWeight.w600)),
+        style: ElevatedButton.styleFrom(
+          backgroundColor: AppColors.primary,
+          foregroundColor: Colors.white,
+          padding: EdgeInsets.symmetric(vertical: 18),
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(15),
+          ),
+          elevation: 4,
+          shadowColor: AppColors.primary.withOpacity(0.3),
+        ),
       ),
     );
   }

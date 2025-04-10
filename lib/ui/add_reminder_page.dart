@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:aila_/services/mongodb_service.dart';
-import '../utils/constants.dart'; // Asegúrate de que las constantes están correctamente definidas.
+import '../utils/constants.dart';
 
 class AddReminderPage extends StatefulWidget {
   @override
@@ -44,7 +44,7 @@ class _AddReminderPageState extends State<AddReminderPage> {
     if (picked != null && picked != selectedDate) {
       setState(() {
         selectedDate = picked;
-        _dateController.text = "${picked.toLocal()}".split(' ')[0]; // Formato corto YYYY-MM-DD
+        _dateController.text = "${picked.toLocal()}".split(' ')[0];
       });
     }
   }
@@ -74,23 +74,25 @@ class _AddReminderPageState extends State<AddReminderPage> {
     }
 
     Map<String, dynamic> reminder = {
+      'email': 'kykesaco@gmail.com',
       'titulo': _titleController.text,
       'descripcion': _descriptionController.text,
       'fecha': selectedDate!.toIso8601String(),
       'hora': selectedTime!.format(context),
+      'notificado': false,
       'idUsuario': userId,
     };
 
     await MongoDBService.addReminder(reminder);
 
-ScaffoldMessenger.of(context).showSnackBar(
-  SnackBar(
-    content: Text('Recordatorio guardado con éxito'),
-    backgroundColor: AppColors.success, // Asegúrate que AppColors.success está definido correctamente
-  ),
-);
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text('Recordatorio guardado con éxito'),
+        backgroundColor: AppColors.success,
+      ),
+    );
 
-    Navigator.pop(context, true); // Retorna 'true' para actualizar la lista
+    Navigator.pop(context, true);
   }
 
   @override

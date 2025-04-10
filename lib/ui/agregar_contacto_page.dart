@@ -27,9 +27,17 @@ class _AgregarContactoPageState extends State<AgregarContactoPage> {
 
       if (userData != null) {
         List<dynamic> contactos = List.from(userData['contacto'] ?? []);
+
+        // Obtener el teléfono y agregar el prefijo "521" si no lo tiene
+        String telefono = _telefonoController.text.trim();
+        if (!telefono.startsWith("521")) {
+          telefono = "521" + telefono;
+        }
+
         contactos.add({
+          '_id': DateTime.now().millisecondsSinceEpoch.toString(), // ID único para el contacto
           'nombre': _nombreController.text.trim(),
-          'telefono': _telefonoController.text.trim(),
+          'telefono': telefono,
         });
 
         await collection.updateOne(

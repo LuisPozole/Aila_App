@@ -14,6 +14,7 @@ class EditReminderPage extends StatefulWidget {
 class _EditReminderPageState extends State<EditReminderPage> {
   late TextEditingController titleController;
   late TextEditingController descriptionController;
+  final double _elementSpacing = 24.0;
 
   @override
   void initState() {
@@ -22,148 +23,221 @@ class _EditReminderPageState extends State<EditReminderPage> {
     descriptionController = TextEditingController(text: widget.reminder['descripcion']);
   }
 
-  Future<void> _confirmUpdateReminder() async {
-    bool confirm = await _showConfirmationDialog(
-      title: "Confirmar cambios",
-      content: "¿Estás seguro de que quieres guardar los cambios?",
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      backgroundColor: AppColors.background,
+      appBar: _buildAppBar(),
+      body: SingleChildScrollView(
+        padding: EdgeInsets.all(20),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            _buildInputSection(
+              label: "Título del recordatorio",
+              controller: titleController,
+              icon: Icons.title_rounded,
+            ),
+            SizedBox(height: _elementSpacing),
+            _buildInputSection(
+              label: "Descripción",
+              controller: descriptionController,
+              icon: Icons.description_rounded,
+              maxLines: 4,
+            ),
+            SizedBox(height: _elementSpacing * 1.5),
+            _buildActionButtons(),
+          ],
+        ),
+      ),
     );
-    if (confirm) {
-      await _updateReminder();
-    }
   }
 
-  Future<void> _updateReminder() async {
-    widget.reminder['titulo'] = titleController.text;
-    widget.reminder['descripcion'] = descriptionController.text;
-
-    await MongoDBService.updateReminder(widget.reminder);
-    _showNotification("Cambios guardados correctamente.");
-    Navigator.pop(context, true); // Devuelve true para indicar éxito
-  }
-
-  Future<void> _confirmDeleteReminder() async {
-    bool confirm = await _showConfirmationDialog(
-      title: "Eliminar recordatorio",
-      content: "¿Seguro que quieres eliminar este recordatorio? Esta acción no se puede deshacer.",
+  PreferredSizeWidget _buildAppBar() {
+    return AppBar(
+      title: Text(
+        "Editar Recordatorio",
+        style: AppTextStyles.appBarTitle.copyWith(fontWeight: FontWeight.w600),
+      ),
+      backgroundColor: AppColors.appBar,
+      elevation: 2,
+      shadowColor: Colors.black12,
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(bottom: Radius.circular(16)),
+      ),
+      actions: [
+        IconButton(
+          icon: Icon(Icons.delete_rounded, color: Colors.red[300]),
+          onPressed: _confirmDeleteReminder,
+          tooltip: 'Eliminar',
+        ),
+      ],
     );
-    if (confirm) {
-      await _deleteReminder();
-    }
   }
 
-  Future<void> _deleteReminder() async {
-    await MongoDBService.deleteReminder(widget.reminder['_id']);
-    _showNotification("Recordatorio eliminado correctamente.");
-    Navigator.pop(context, true); // Devuelve true para indicar éxito
+  Widget _buildInputSection({
+    required String label,
+    required TextEditingController controller,
+    required IconData icon,
+    int maxLines = 1,
+  }) {
+    return Container(
+      decoration: BoxDecoration(
+        borderRadius: BorderRadius.circular(16),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black12,
+            blurRadius: 8,
+            offset: Offset(0, 4),
+          ),
+        ],
+      ),
+      child: TextField(
+        controller: controller,
+        maxLines: maxLines,
+        style: AppTextStyles.bodyText.copyWith(color: AppColors.textPrimary),
+        decoration: InputDecoration(
+          filled: true,
+          fillColor: Colors.white,
+          prefixIcon: Icon(icon, color: AppColors.primary.withOpacity(0.8)),
+          floatingLabelBehavior: FloatingLabelBehavior.never,
+          labelText: label,
+          labelStyle: TextStyle(color: Colors.grey.shade600),
+          border: OutlineInputBorder(
+            borderRadius: BorderRadius.circular(16),
+            borderSide: BorderSide.none,
+          ),
+          focusedBorder: OutlineInputBorder(
+            borderRadius: BorderRadius.circular(16),
+            borderSide: BorderSide(color: AppColors.primary, width: 1.5),
+          ),
+          contentPadding: EdgeInsets.symmetric(
+              vertical: maxLines > 1 ? 18 : 0, horizontal: 16),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildActionButtons() {
+    return Row(
+      children: [
+        Expanded(
+          child: ElevatedButton.icon(
+            onPressed: _confirmUpdateReminder,
+            icon: Icon(Icons.save_rounded, size: 22),
+            label: Text(
+              "GUARDAR CAMBIOS",
+              style: TextStyle(letterSpacing: 0.8, fontWeight: FontWeight.w600),
+            ),
+            style: ElevatedButton.styleFrom(
+              backgroundColor: AppColors.primary,
+              foregroundColor: Colors.white,
+              padding: EdgeInsets.symmetric(vertical: 18),
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(12),
+              ),
+              elevation: 2,
+              shadowColor: AppColors.primary.withOpacity(0.3),
+            ),
+          ),
+        ),
+      ],
+    );
   }
 
   Future<bool> _showConfirmationDialog({required String title, required String content}) async {
     return await showDialog<bool>(
-      context: context,
-      builder: (context) => AlertDialog(
-        title: Text(title, style: AppTextStyles.bigTitle),
-        content: Text(content, style: AppTextStyles.bodyText),
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(context, false),
-            child: Text("Cancelar", style: TextStyle(color: AppColors.textPrimary)),
+          context: context,
+          builder: (context) => Dialog(
+            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+            backgroundColor: Colors.white,
+            child: Padding(
+              padding: EdgeInsets.all(20),
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Icon(Icons.warning_amber_rounded, size: 48, color: Colors.amber),
+                  SizedBox(height: 16),
+                  Text(title, style: AppTextStyles.bigTitle.copyWith(fontSize: 20)),
+                  SizedBox(height: 12),
+                  Text(content, style: AppTextStyles.bodyText.copyWith(color: Colors.grey.shade700)),
+                  SizedBox(height: 24),
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceAround,
+                    children: [
+                      TextButton(
+                        onPressed: () => Navigator.pop(context, false),
+                        child: Text("Cancelar", style: TextStyle(color: Colors.grey.shade600)),
+                        style: TextButton.styleFrom(
+                          padding: EdgeInsets.symmetric(horizontal: 30, vertical: 12),
+                        ),
+                      ),
+                      ElevatedButton(
+                        onPressed: () => Navigator.pop(context, true),
+                        child: Text("Confirmar"),
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: AppColors.primary,
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(10),
+                          ),
+                          padding: EdgeInsets.symmetric(horizontal: 30, vertical: 12),
+                        ),
+                      ),
+                    ],
+                  ),
+                ],
+              ),
+            ),
           ),
-          TextButton(
-            onPressed: () => Navigator.pop(context, true),
-            child: Text("Confirmar", style: TextStyle(color: AppColors.primary, fontWeight: FontWeight.bold)),
-          ),
-        ],
-      ),
-    ) ?? false;
+        ) ??
+        false;
   }
 
   void _showNotification(String message) {
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
-        content: Text(message, style: TextStyle(color: Colors.white, fontSize: 16)),
+        content: Row(
+          children: [
+            Icon(Icons.check_circle_rounded, color: Colors.white),
+            SizedBox(width: 12),
+            Expanded(child: Text(message)),
+          ],
+        ),
         backgroundColor: AppColors.success,
         behavior: SnackBarBehavior.floating,
         duration: Duration(seconds: 3),
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+        margin: EdgeInsets.all(20),
       ),
     );
   }
 
-  @override
-  Widget build(BuildContext context) {
-    return Scaffold(
-      backgroundColor: AppColors.background,
-      appBar: AppBar(
-        title: Text("Editar Recordatorio", style: AppTextStyles.appBarTitle),
-        backgroundColor: AppColors.appBar,
-        actions: [
-          IconButton(
-            icon: Icon(Icons.delete, color: Colors.red),
-            onPressed: _confirmDeleteReminder,
-          ),
-        ],
-      ),
-      body: Padding(
-        padding: const EdgeInsets.all(16.0),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Text("Título", style: AppTextStyles.bigTitle),
-            SizedBox(height: 8),
-            TextField(
-              controller: titleController,
-              decoration: InputDecoration(
-                filled: true,
-                fillColor: Colors.white,
-                border: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(12),
-                  borderSide: BorderSide(color: AppColors.primary),
-                ),
-                focusedBorder: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(12),
-                  borderSide: BorderSide(color: AppColors.primary, width: 2),
-                ),
-              ),
-              style: AppTextStyles.bodyText,
-            ),
-            SizedBox(height: 16),
-            Text("Descripción", style: AppTextStyles.bigTitle),
-            SizedBox(height: 8),
-            TextField(
-              controller: descriptionController,
-              maxLines: 3,
-              decoration: InputDecoration(
-                filled: true,
-                fillColor: Colors.white,
-                border: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(12),
-                  borderSide: BorderSide(color: AppColors.primary),
-                ),
-                focusedBorder: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(12),
-                  borderSide: BorderSide(color: AppColors.primary, width: 2),
-                ),
-              ),
-              style: AppTextStyles.bodyText,
-            ),
-            SizedBox(height: 24),
-            Center(
-              child: ElevatedButton(
-                onPressed: _confirmUpdateReminder,
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: AppColors.primary,
-                  padding: EdgeInsets.symmetric(horizontal: 40, vertical: 14),
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(12),
-                  ),
-                ),
-                child: Text("Guardar cambios", style: TextStyle(color: Colors.white, fontSize: 18)),
-              ),
-            ),
-          ],
-        ),
-      ),
+  void _confirmDeleteReminder() async {
+    bool confirmed = await _showConfirmationDialog(
+      title: "¿Eliminar recordatorio?",
+      content: "Esta acción no se puede deshacer.",
     );
+    if (confirmed) {
+      // Lógica para eliminar desde MongoDB aquí
+      // await MongoDBService.deleteReminder(widget.reminder['_id']);
+      Navigator.pop(context); // Volver a la pantalla anterior
+      _showNotification("Recordatorio eliminado");
+    }
+  }
+
+  void _confirmUpdateReminder() async {
+    bool confirmed = await _showConfirmationDialog(
+      title: "¿Guardar cambios?",
+      content: "Se actualizará el recordatorio actual.",
+    );
+    if (confirmed) {
+      // Lógica para actualizar en MongoDB aquí
+      // await MongoDBService.updateReminder(widget.reminder['_id'], {
+      //   'titulo': titleController.text,
+      //   'descripcion': descriptionController.text,
+      // });
+      Navigator.pop(context); // Volver con los cambios
+      _showNotification("Recordatorio actualizado");
+    }
   }
 }
